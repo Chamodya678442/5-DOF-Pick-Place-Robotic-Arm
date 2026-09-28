@@ -1,0 +1,221 @@
+\section{ELECTRONIC SYSTEM AND MICROCONTROLLER IMPLEMENTATION}
+
+\subsection{Hardware Components}
+
+The electronic system of the 5-DOF pick-and-place robotic arm consists of a microcontroller unit, servo motors, an object detection sensor, and a dedicated power supply system. The hardware components were selected to provide sufficient torque, accurate joint movement, and reliable control during the automated pick-and-place operation.
+
+The entire system receives input on the target location, controls the robotic arm's movements through servo motors, detects the presence of an object using an IR sensor, and then executes the required sequence of gripping and placement. The primary aim of the electronic system is to translate the calculated joint angles of the inverse kinematics algorithm into physical motion of the robotic arm.
+
+\subsubsection{ESP32 Microcontroller}
+
+The ESP32 development board was selected as the main controller due to its processing capability, multiple GPIO pins, PWM output support, and compatibility with servo motor control applications.
+
+The ESP32 performs the following tasks:
+
+\begin{itemize}
+    \item Generates PWM signals required for servo motor control.
+    \item Receives input signals from the IR sensor.
+    \item Executes the pick-and-place control algorithm.
+    \item Stores and processes the calculated servo angle values.
+    \item Coordinates the movement of all five servo motors.
+\end{itemize}
+
+The ESP32 acts as the communication bridge between the mathematical model and the physical robotic system. The calculated inverse kinematics results are converted into servo commands and transmitted through PWM control signals.
+
+\subsubsection{Servo Motors}
+
+The robotic arm uses five servo motors to provide five degrees of freedom. According to the system design, each joint performs a specific function, as shown in Table~\ref{tab:servo_configuration}.
+
+\begin{table}[htbp]
+\centering
+\caption{Servo Motor Configuration}
+\label{tab:servo_configuration}
+\begin{tabular}{lll}
+\toprule
+\textbf{Joint} & \textbf{Function} & \textbf{Servo Motor} \\
+\midrule
+Joint 01 & Base rotation & DS3218 \\
+Joint 02 & Shoulder movement & MG996R \\
+Joint 03 & Elbow movement & MG996R \\
+Joint 04 & Wrist movement & MG996R \\
+Joint 05 & Gripper movement & MG996R \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The DS3218 servo motor was used for the base rotation due to its higher torque requirement. The MG996R servo motors were used for the remaining joints because they provide adequate torque and are commonly used for robotic arm applications.
+
+The servo motors receive angular position commands from the ESP32 and rotate to the required positions calculated through the inverse kinematics algorithm.
+
+\subsubsection{IR Object Detection Sensor}
+
+An infrared (IR) sensor was integrated into the system to detect the presence of objects before starting the pick operation.
+
+The sensor performs the following functions:
+
+\begin{itemize}
+    \item Detects whether an object is available for pickup.
+    \item Provides a trigger signal to the ESP32.
+    \item Prevents unnecessary movement when no object is detected.
+\end{itemize}
+
+When the IR sensor detects an object, the ESP32 executes the pick-and-place sequence.
+
+\subsubsection{Power Supply System}
+
+Since multiple servo motors require high current during movement, an external power supply was used instead of directly powering the motors from the ESP32.
+
+The power system consists of:
+
+\begin{itemize}
+    \item 5~V external SMPS power supply.
+    \item Breadboard-based power distribution.
+    \item Separate servo power connections.
+\end{itemize}
+
+The external power supply improves system stability by reducing voltage drops and preventing controller resets caused by high servo current consumption. The project cost breakdown identifies the use of a 5~V/5~A SMPS power supply for the servo system.
+
+
+\subsection{ESP32 Control Implementation}
+
+\subsubsection{Servo Library Implementation}
+
+The ESP32 program was developed using the Arduino IDE environment. The servo control system uses a servo library to generate PWM signals for controlling the angular position of each motor.
+
+Each servo motor is assigned:
+
+\begin{itemize}
+    \item A specific GPIO pin.
+    \item An initial position.
+    \item A target angle.
+    \item A movement sequence.
+\end{itemize}
+
+The program structure consists of:
+
+\begin{enumerate}
+    \item Servo initialization.
+    \item Sensor initialization.
+    \item Position definition.
+    \item Movement functions.
+    \item Pick-and-place sequence execution.
+\end{enumerate}
+
+\subsubsection{PWM-Based Servo Control}
+
+Servo motors are controlled using Pulse Width Modulation (PWM). The relationship between the PWM signal and servo angle is based on the following principles:
+
+\begin{itemize}
+    \item A specific pulse width corresponds to a specific angular position.
+    \item Changing the PWM signal changes the servo position.
+\end{itemize}
+
+The ESP32 generates PWM signals according to the required joint angles. The overall conversion process is illustrated in Fig.~\ref{fig:ik_servo_flow}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=8mm,
+    box/.style={
+        rectangle,
+        draw,
+        rounded corners,
+        minimum width=42mm,
+        minimum height=9mm,
+        align=center
+    },
+    arrow/.style={-{Stealth},thick}
+]
+
+\node[box] (ik) {Inverse Kinematics\\Calculation};
+\node[box, below=of ik] (angle) {Required Joint Angle};
+\node[box, below=of angle] (mapping) {Servo Angle Mapping};
+\node[box, below=of mapping] (pwm) {PWM Signal Generation};
+\node[box, below=of pwm] (movement) {Servo Movement};
+
+\draw[arrow] (ik) -- (angle);
+\draw[arrow] (angle) -- (mapping);
+\draw[arrow] (mapping) -- (pwm);
+\draw[arrow] (pwm) -- (movement);
+
+\end{tikzpicture}
+\caption{Conversion of inverse kinematics results into servo movement}
+\label{fig:ik_servo_flow}
+\end{figure}
+
+The calculated angles are adjusted according to the mechanical offset of each servo and converted into suitable PWM commands.
+
+\subsubsection{Software Structure}
+
+The control program was developed using the Arduino IDE environment. The software was organized into different functional sections to simplify system operation and debugging. The main program structure consists of initialization, movement control functions, and the main control loop.
+
+\paragraph{Initialization Section:}
+During system initialization:
+
+\begin{itemize}
+    \item Servo motors are connected to the assigned ESP32 pins.
+    \item Initial joint positions are defined.
+    \item The IR sensor input is configured.
+    \item The robotic arm is moved to the home position.
+\end{itemize}
+
+\paragraph{Movement Control Functions:}
+Separate functions were developed for:
+
+\begin{itemize}
+    \item Moving the arm to the pickup position.
+    \item Controlling the gripper operation.
+    \item Moving to the storage positions.
+    \item Returning the arm to the initial position.
+\end{itemize}
+
+\paragraph{Main Control Loop:}
+The main loop continuously monitors the IR sensor status. When an object is detected, the ESP32 executes the programmed pick-and-place sequence.
+
+
+\subsection{Pick-and-Place Control Algorithm}
+
+The developed robotic arm follows a predefined automated sequence to perform object handling. The system receives a target coordinate, calculates the required joint positions, moves the arm to the required location, picks the object using the gripper, and places it into the assigned position. The operation is repeated for multiple positions within the storage box.
+
+The complete operation consists of the following steps:
+
+\subsubsection{System Initialization}
+
+When the system is powered on, the ESP32 initializes all connected components. The servo motors move to their predefined home positions to establish a reference starting point. The initialization process ensures that the robotic arm begins every operation from a known configuration.
+
+\subsubsection{Object Detection}
+
+The IR sensor continuously monitors the workspace for object presence. When an object is detected:
+
+\begin{enumerate}
+    \item The sensor sends a signal to the ESP32.
+    \item The controller processes the input.
+    \item The pick operation is initiated.
+\end{enumerate}
+
+\subsubsection{Movement to Pick Position}
+
+The desired object position is converted into joint angles using the inverse kinematics algorithm. The ESP32 then sends the calculated angles to the servo motors, causing the robotic arm to move through coordinated joint movements.
+
+The movement involves:
+
+\begin{itemize}
+    \item Base rotation adjustment.
+    \item Shoulder positioning.
+    \item Elbow movement.
+    \item Wrist alignment.
+    \item Gripper positioning.
+\end{itemize}
+
+\subsubsection{Object Gripping}
+
+Once the robotic arm reaches the pickup position, the gripper servo is activated. The gripper closes around the object and maintains sufficient holding force to transport it without slipping.
+
+\subsubsection{Movement to Target Position}
+
+After successfully gripping the object, the robotic arm moves towards the assigned storage location. The movement is controlled using predefined target coordinates and corresponding servo angles.
+
+\subsubsection{Object Placement and Return}
+
+At the target location, the gripper opens and releases the object into the storage box. After placement, the robotic arm returns to the home position and waits for the next object detection signal.
+

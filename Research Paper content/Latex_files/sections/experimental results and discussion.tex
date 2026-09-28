@@ -1,0 +1,59 @@
+\section{EXPERIMENTAL RESULTS AND DISCUSSION}
+
+\subsection{Mechanical Testing}
+
+Mechanical testing was conducted to evaluate the stability, movement capability, and overall performance of the robotic arm structure. The main testing areas included structural stability, joint movement, and load handling capability. During development, several mechanical challenges were encountered, including arm assembly, joint alignment, load handling, and correct motor mounting.
+
+To overcome these issues, the arm structure was reinforced, joint positions were adjusted, and a commercially available robotic arm kit was integrated as the final mechanical platform. Individual joint testing was performed to verify the following:
+
+\begin{itemize}
+    \item Smooth base rotation.
+    \item Accurate shoulder and elbow movement.
+    \item Proper wrist positioning.
+    \item Reliable gripper operation.
+\end{itemize}
+
+Servo calibration was carried out to achieve synchronized and accurate joint movement.
+
+\subsection{Angle Verification}
+
+The accuracy of the inverse kinematics implementation was verified by comparing the calculated joint angles with the actual servo movements. The verification process involved the following steps:
+
+\begin{enumerate}
+    \item Providing the desired end-effector coordinates.
+    \item Calculating joint angles using inverse kinematics.
+    \item Sending the calculated values to the ESP32.
+    \item Observing the actual servo positions.
+    \item Adjusting calibration offsets where required.
+\end{enumerate}
+
+Coordinate calibration was performed through repeated testing to improve the positioning accuracy of the robotic arm. The results confirmed that the calculated angles could be successfully converted into accurate physical movements.
+
+\subsection{Pick and Place Performance}
+
+The complete robotic system was tested by performing multiple pick-and-place operations. The performance evaluation included object detection, gripping performance, placement accuracy, and system repeatability.
+
+\subsubsection{Object Detection}
+
+The IR sensor successfully detected the presence of objects and triggered the automated pick-and-place operation.
+
+\subsubsection{Gripping Performance}
+
+The gripper mechanism was tested to ensure reliable object handling. Modifications were made to improve gripping performance and prevent object slipping during the pick-and-place process.
+
+\subsubsection{Placement Accuracy}
+
+Placement accuracy was improved through the following methods:
+
+\begin{itemize}
+    \item Servo calibration.
+    \item Coordinate adjustment.
+    \item Repeated testing.
+\end{itemize}
+
+These adjustments helped improve the consistency of object placement at the designated positions.
+
+\subsubsection{System Repeatability}
+
+The robotic arm demonstrated repeatable movement by successfully completing multiple operating cycles. Software debugging and system integration testing were performed to ensure smooth communication between the ESP32, sensors, and servo motors.\cite{baby2017pick}
+
